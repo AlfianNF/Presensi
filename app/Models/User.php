@@ -3,11 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -17,7 +20,13 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'username',
+        'email',
+        'password',
+        'role',
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -40,6 +49,17 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Tambahkan ini
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 
     protected static $is_add = ['name','username','password','role','email'];
@@ -78,5 +98,52 @@ class User extends Authenticatable
             }
         }
         return $rules;
+    }
+
+    /**
+     * Get all of the setting for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function setting(): HasMany
+    {
+        return $this->hasMany(SettingPresensi::class, 'id_user', 'id');
+    }
+
+    /**
+     * Get all of the presensi for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function presensi(): HasMany
+    {
+        return $this->hasMany(Presensi::class, 'id_user', 'id');
+    }
+
+    // public function getRelations()
+    // {
+    //     return [
+    //         'setting' => function ($query) {
+    //             $query->select('id', 'id_user','hari','waktu'); 
+    //         },
+    //         'presensi' => function ($query) {
+    //             $query->select('id', 'id_presensi', 'id_setting','jam_masuk','jam_keluar','latitude','longitude','status');
+    //         }
+    //     ];
+    // }
+
+    public function getRelations(){
+        return [
+            'setting' => function ($query) {
+                $columns = Schema::getColumnListing('setting_presensis');
+                $columns = array_diff($columns, ['created_at', 'updated_at']); 
+                $query->select($columns);
+            },
+            'presensi' => function ($query) {
+                $columns = Schema::getColumnListing('presensis');
+                $columns = array_diff($columns, ['created_at', 'updated_at']);
+                $query->select($columns);
+            },
+        ];
     }
 }

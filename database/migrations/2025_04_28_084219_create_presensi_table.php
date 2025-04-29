@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('presensi', function (Blueprint $table) {
+        Schema::create('presensis', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_user')->onDelete('cascade');
             $table->unsignedBigInteger('id_setting')->onDelete('cascade');
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('id_user')->references('id')->on('users');
-            $table->foreign('id_setting')->references('id')->on('setting_presensi');
+            $table->foreign('id_setting')->references('id')->on('setting_presensis');
 
         });
     }

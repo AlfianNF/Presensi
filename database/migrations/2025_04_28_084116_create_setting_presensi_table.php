@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('setting_presensi', function (Blueprint $table) {
+        Schema::create('setting_presensis', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_user')->onDelete('cascade');
-            $table->time('hari');  
+            $table->date('hari');  
             $table->time('waktu');  
             $table->timestamps();
 
