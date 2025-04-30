@@ -23,13 +23,6 @@ class SettingPresensiController extends Controller
     {    
         $modelClass = SettingPresensi::class;
     
-        if (!class_exists($modelClass)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Model "presensi_setting" not found.',
-            ], 400);
-        }
-    
         $query = $modelClass::query();
     
         $filters = $request->only($modelClass::getAllowedFields('filter'));
@@ -56,7 +49,7 @@ class SettingPresensiController extends Controller
         }
 
     
-        $query->with((new SettingPresensi)->getRelations());
+        $query->with((new $modelClass)->getRelations());
     
         $data = $query->orderBy('created_at', 'DESC')->get();
     
@@ -122,25 +115,114 @@ class SettingPresensiController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        $modelClass = SettingPresensi::class;
+
+        $data = $modelClass::with((new $modelClass)->getRelations())->find($id);
+
+        if (!$data) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
     }
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $modelClass = SettingPresensi::class;
+
+        try {
+            $rules = $modelClass::getValidationRules('edit');
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                throw new ValidationException($validator);
+            }
+
+            $setting = $modelClass::find($id);
+
+            if (!$setting) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan.',
+                ], 404);
+            }
+
+            $setting->update($request->all());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil diperbarui.',
+                'data' => $setting,
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (QueryException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan pada database.',
+                'error' => $e->getMessage(),
+            ], 500);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan server.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
-    }
+        $modelClass = SettingPresensi::class;
 
+        try {
+            $setting = $modelClass::find($id);
+
+            if (!$setting) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data tidak ditemukan.',
+                ], 404);
+            }
+
+            $setting->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil dihapus.',
+            ]);
+        } catch (QueryException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan pada database.',
+                'error' => $e->getMessage(),
+            ], 500);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan server.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

@@ -64,14 +64,14 @@ class SettingPresensi extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function settingPresensi(): HasMany
+    public function presensi(): HasMany
     {
         return $this->hasMany(Presensi::class, 'id_setting', 'id');
     }
 
     public function getRelations(){
         return [
-            'settingPresensi' => function ($query) {
+            'presensi' => function ($query) {
                 $columns = Schema::getColumnListing('presensis'); 
                 $columns = array_diff($columns, ['created_at', 'updated_at']);
                 $query->select($columns);

@@ -16,8 +16,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('id_user')->onDelete('cascade');
             $table->unsignedBigInteger('id_setting')->onDelete('cascade');
-            $table->date('jam_masuk')->default(DB::raw('CURRENT_DATE'));
-            $table->date('jam_keluar')->nullable();
+            $table->time('jam_masuk');
+            $table->time('jam_keluar')->nullable();
             $table->string('latitude');
             $table->string('longitude');
             $table->enum('status', ['tepat waktu','terlambat','alfa'])->default('alfa');

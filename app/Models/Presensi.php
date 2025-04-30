@@ -8,16 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Presensi extends Model
 {
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     protected static $rules = [
-        'id_setting' => 'required|exists:setting,id',
+        'id_setting' => 'required|exists:setting_presensis,id',
         'id_user' => 'required|exists:users,id',
-        'jam_masuk' => 'required|date',
-        'jam_keluar' => 'required|date',
+        'jam_masuk' => 'nullable|date_format:H:i:s',
+        'jam_keluar' => 'nullable|date_format:H:i:s',
         'latitude' => 'required',
         'longitude' => 'required',
-        'status'=> 'required',
+        'status'=> 'nullable',
     ];
 
     protected static $is_add = ['id_setting', 'id_user', 'jam_masuk', 'jam_keluar', 'latitude','longitude','status'];
@@ -77,10 +77,12 @@ class Presensi extends Model
         return [
             'presensiSetting' => function ($query) {
                 $columns = Schema::getColumnListing('setting_presensis'); 
+                $columns = array_diff($columns, ['created_at', 'updated_at']);
                 $query->select($columns);
             },
             'userPresensi' => function ($query) {
                 $columns = Schema::getColumnListing('users');
+                $columns = array_diff($columns, ['created_at', 'updated_at']);
                 $query->select($columns);
             },
         ];
