@@ -11,6 +11,7 @@ Route::middleware('auth:api')->group(function () {
 
     Route::resource('setting-presensi', SettingPresensiController::class);
     Route::resource('presensi', PresensiController::class);
+    Route::get('history-presensi',[PresensiController::class,'history']);
 
     Route::get('logout', [AuthController::class, 'logout']);
 });
