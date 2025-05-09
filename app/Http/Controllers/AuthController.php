@@ -1,124 +1,90 @@
-<?php
-
-namespace App\Http\Controllers;
-
-use Exception;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Database\QueryException;
-use Tymon\JWTAuth\Facades\JWTAuth;
-
-class AuthController extends Controller
-{
-    public function register(Request $request)
+<?php 
+ 
+namespace App\Http\Controllers; 
+ 
+use Illuminate\Http\Request; 
+use Illuminate\Support\Facades\Validator; 
+use GuzzleHttp\Client; 
+use Illuminate\Support\Facades\Cookie; 
+ 
+class AuthController extends Controller 
+{ 
+    public function loginPage() 
+    { 
+        return view('auth.login'); 
+    } 
+ 
+    public function login(Request $request) 
     {
-        try {
-            $rules = User::getValidationRules('add');
-            $validator = Validator::make($request->all(), $rules);
-
-            if ($validator->fails()) {
-                throw new ValidationException($validator);
-            }
-
-            $data = $request->all();
-            $data['password'] = Hash::make($data['password']);
-
-            $user = User::create($data);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'User berhasil dibuat.',
-                'data' => $user,
-            ], 201);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal.',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (QueryException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan pada database.',
-                'error' => $e->getMessage(),
-            ], 500);
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan server.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        $request->validate([ 
+            'username' => 'required|string', 
+            'password' => 'required|string', 
+        ]); 
+ 
+        try { 
+            $client = new Client(); 
+            $apiLoginUrl = env('APP_URL') . '/api/login'; 
+ 
+            $response = $client->post($apiLoginUrl, [ 
+                'headers' => [ 
+                    'Accept' => 'application/json', 
+                    'Content-Type' => 'application/json', 
+                ], 
+                'json' => [ 
+                    'username' => $request->username, 
+                    'password' => $request->password, 
+                ], 
+            ]); 
+ 
+            $data = json_decode($response->getBody(), true); 
+ 
+            if ($data['success'] === true && isset($data['data']['access_token'])) {
+                session(['access_token' => $data['data']['access_token']]);
+                session(['user' => $data['data']['user'] ?? null]);
+                
+                $cookieTime = 60;
+                
+                Cookie::queue('access_token', $data['data']['access_token'], $cookieTime);
+                
+                \Log::info('Token diterima: ' . substr($data['data']['access_token'], 0, 10) . '...');
+                
+                return response()->view('dashboard.index', [ 
+                    'token' => $data['data']['access_token'], 
+                    'user' => $data['data']['user'] ?? null, 
+                ]);
+            } else { 
+                $errorMessage = $data['message'] ?? 'Login failed. Please check your username and password.'; 
+                return redirect()->route('loginPage')->with('error', $errorMessage); 
+            } 
+        } catch (\GuzzleHttp\Exception\ClientException $e) { 
+            $response = $e->getResponse(); 
+            $errorBody = json_decode($response->getBody()->getContents(), true); 
+            $errorMessage = $errorBody['message'] ?? 'Login failed: Invalid credentials.'; 
+            return back()->withErrors(['login' => $errorMessage]); 
+        } catch (\Exception $e) { 
+            \Log::error('Login error: ' . $e->getMessage());
+            return back()->withErrors(['login' => 'An error occurred: ' . $e->getMessage()]); 
+        } 
     }
-
     
-    public function login(Request $request)
+    public function checkToken()
     {
-        try {
-            $credentials = $request->validate([
-                'username' => 'required|string',
-                'password' => 'required|string',
-            ]);
-
-            if (!$token = auth('api')->attempt($credentials)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid login credentials.',
-                ], 401);
-            }
-
-            return $this->respondWithToken($token);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal.',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan server.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        $sessionToken = session('access_token');
+        $cookieToken = request()->cookie('access_token');
+        
+        return response()->json([
+            'cookie_exists' => !empty($cookieToken),
+            'session_exists' => !empty($sessionToken),
+            'cookie_preview' => $cookieToken ? substr($cookieToken, 0, 10) . '...' : null,
+        ]);
     }
-
+    
+    // Metode untuk keluar/logout
     public function logout()
     {
-        try {
-            auth('api')->logout();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'User berhasil logout.',
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal logout.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    public function me(){
-        return auth()->user();
-    }
-
-    protected function respondWithToken($token)
-    {
-        return response()->json([
-            'success' => true,
-            'message' => 'User berhasil login.',
-            'data' => [
-                'access_token' => $token,
-                'token_type' => 'bearer',
-                'expires_in' => auth('api')->factory()->getTTL() * 60,
-                'user' => auth('api')->user(),
-            ]
-        ]);
+        session()->forget(['access_token', 'user']);
+        Cookie::queue(Cookie::forget('access_token'));
+        
+        return redirect()->route('loginPage')->with('success', 'You have been logged out successfully');
     }
 }

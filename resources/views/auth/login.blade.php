@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="app-url" content="{{ env('APP_URL') }}">
   <title>Sistem Presensi Online</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -32,7 +33,8 @@
       </div>
 
       <div class="p-6">
-        <form id="loginForm">
+        <form id="loginForm" action="{{ route('login') }}" method="POST">
+          @csrf
           <div class="mb-4">
             <label for="username" class="block text-gray-700 text-sm font-medium mb-2">Username</label>
             <div class="relative">
@@ -60,7 +62,11 @@
             </div>
           </div>
 
-          <!-- Remember Me -->
+          @if($errors->any())
+            <div class="text-red-500 mt-3 text-sm">
+              {{ $errors->first() }}
+            </div>
+          @endif
           <div class="flex items-center mb-6">
             <input id="remember" name="remember" type="checkbox"
               class="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded">
@@ -85,30 +91,6 @@
       passwordInput.type = isPassword ? 'text' : 'password';
       eyeIcon.classList.toggle('fa-eye');
       eyeIcon.classList.toggle('fa-eye-slash');
-    });
-
-    document.getElementById('loginForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = passwordInput.value;
-      const remember = document.getElementById('remember').checked;
-
-      const btn = e.target.querySelector('button[type="submit"]');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
-      btn.disabled = true;
-
-      setTimeout(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-
-        if (username && password) {
-          alert('Login berhasil! Akan diarahkan ke dashboard.');
-        //   window.location.href = '/dashboard';
-        } else {
-          alert('Username dan password harus diisi!');
-        }
-      }, 1500);
     });
   </script>
 </body>
