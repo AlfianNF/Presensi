@@ -76,7 +76,7 @@ class SettingPresensiController extends Controller
     {
         $modelClass = SettingPresensi::class;
         try {
-            $rules = $modelClass::getValidationRules('add');
+            $rules = $modelClass::getValidationRules('add'); // Anda mungkin perlu membuat rule untuk 'add'
             $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
@@ -84,6 +84,8 @@ class SettingPresensiController extends Controller
             }
 
             $data = $request->all();
+            // Ambil ID pengguna yang sedang login.
+            $data['id_user'] = auth()->id(); // Pastikan user sudah login
             $setting = $modelClass::create($data);
 
             return response()->json([
@@ -111,6 +113,7 @@ class SettingPresensiController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Display the specified resource.

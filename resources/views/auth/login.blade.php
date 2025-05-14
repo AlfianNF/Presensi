@@ -7,7 +7,7 @@
   <title>Sistem Presensi Online</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     .bg-gradient-custom {
     background: #034289 ;
@@ -63,10 +63,18 @@
           </div>
 
           @if($errors->any())
-            <div class="text-red-500 mt-3 text-sm">
-              {{ $errors->first() }}
-            </div>
+            <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Login Gagal',
+                  text: '{{ $errors->first() }}',
+                  confirmButtonColor: '#034289'
+                });
+              });
+            </script>
           @endif
+
           <div class="flex items-center mb-6">
             <input id="remember" name="remember" type="checkbox"
               class="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded">
@@ -81,17 +89,70 @@
       </div>
   </div>
 
-  <script>
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
-    const eyeIcon = document.getElementById('eyeIcon');
+<script>
+const baseUrl = document.querySelector('meta[name="app-url"]').getAttribute('content');
 
-    togglePassword.addEventListener('click', function () {
-      const isPassword = passwordInput.type === 'password';
-      passwordInput.type = isPassword ? 'text' : 'password';
-      eyeIcon.classList.toggle('fa-eye');
-      eyeIcon.classList.toggle('fa-eye-slash');
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+
+  fetch(`${baseUrl}/api/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({ username, password })
+  })
+  .then(res => {
+    if (!res.ok) throw res;
+    return res.json();
+  })
+  .then(data => {
+    const tokenField = 'access_token'; // GANTI INI DENGAN NAMA PROPERTI YANG BENAR
+    if (data[tokenField]) {
+      localStorage.setItem('token', data[tokenField]);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Berhasil',
+        showConfirmButton: false,
+        timer: 1500
+      }).then(() => {
+        window.location.href = '/dashboard';
+      });
+    } else {
+      console.warn('Token tidak ditemukan dalam respons server:', data);
+      Swal.fire({
+            icon: 'error',
+            title: 'Login Gagal',
+            text: 'Token tidak ditemukan dalam respons.',
+            confirmButtonColor: '#034289'
+        });
+    }
+  })
+  .catch(async err => {
+    let errorMessage = 'Terjadi kesalahan saat login.';
+    if (err.status === 422) {
+      const errorData = await err.json();
+      errorMessage = Object.values(errorData.errors).flat().join('\n');
+    } else if (err.status === 401) {
+      errorMessage = 'Username atau password salah.';
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Login Gagal',
+      text: errorMessage,
+      confirmButtonColor: '#034289'
     });
-  </script>
+  });
+});
+</script>
+
+
+
 </body>
 </html>

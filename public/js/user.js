@@ -3,7 +3,7 @@ const addUserModal = document.getElementById('addUserModal');
 const closeButtons = document.querySelectorAll('.close-button');
 const userTableBody = document.getElementById('userTableBody');
 const addForm = document.getElementById('addForm');
-const baseUrl = 'http://192.168.88.114:8000'
+const baseUrl = 'http://presensi.test'
 
 
 let userIdToEdit = null;
@@ -35,7 +35,7 @@ window.addEventListener('click', (event) => {
 addForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
-  const name = document.getElementById('add_name').value;
+  const no_hp = document.getElementById('add_no_hp').value;
   const username = document.getElementById('add_username').value;
   const email = document.getElementById('add_email').value;
   const password = document.getElementById('add_password').value;
@@ -49,7 +49,7 @@ addForm.addEventListener('submit', (event) => {
       'Accept': 'application/json',
       'Authorization': `Bearer ${localStorage.getItem('token')}`
     },
-    body: JSON.stringify({ name, username, email, password, role }),
+    body: JSON.stringify({ no_hp, username, email, password, role }),
   })
   .then(response => {
     if (!response.ok) {
@@ -65,7 +65,7 @@ addForm.addEventListener('submit', (event) => {
     newUserRow.dataset.userId = data.data.id;
     newUserRow.innerHTML = `
       <td class="px-6 py-4">${userTableBody.children.length + 1}</td>
-      <td class="px-6 py-4">${data.data.name}</td>
+      <td class="px-6 py-4">${data.data.no_hp}</td>
       <td class="px-6 py-4">${data.data.username}</td>
       <td class="px-6 py-4">${data.data.email}</td>
       <td class="px-6 py-4 capitalize">${data.data.role}</td>
@@ -75,10 +75,35 @@ addForm.addEventListener('submit', (event) => {
     addForm.reset();
     addUserModal.classList.add('hidden');
     document.body.classList.remove('overflow-hidden');
-        alert(data.message);
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil',
+          text: data.message,
+          timer: 2000,
+          showConfirmButton: false
+        });
+
 
   })
-  .catch(error => {
-    alert('Terjadi kesalahan: ' . error.message);
-  });
+    .catch(async error => {
+      let message = 'Terjadi kesalahan.';
+
+      if (error.response && error.response.status === 422) {
+        const errorData = await error.response.json();
+        if (errorData.errors) {
+          message = Object.values(errorData.errors).flat().join('\n');
+        } else if (errorData.message) {
+          message = errorData.message;
+        }
+      } else if (error.message) {
+        message = error.message;
+      }
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Validasi Gagal',
+        text: message
+      });
+    });
+
 });

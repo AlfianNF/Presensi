@@ -21,7 +21,7 @@ class User extends Authenticatable implements JWTSubject
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'no_hp',
         'username',
         'email',
         'password',
@@ -62,14 +62,14 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    protected static $is_add = ['name','username','password','role','email'];
-    protected static $is_edit = ['name','username','password','role','email'];
-    protected static $is_delete = ['name','username','password','role','email'];
+    protected static $is_add = ['no_hp','username','password','role','email'];
+    protected static $is_edit = ['no_hp','username','password','role','email'];
+    protected static $is_delete = ['no_hp','username','password','role','email'];
     protected static $is_filter = ['role'];
-    protected static $is_search = ['name','username','email'];
+    protected static $is_search = ['no_hp','username','email'];
 
     protected static $rules = [
-        'name' => 'required|string|max:255',
+        'no_hp' => 'required|regex:/^08[0-9]{8,11}$/',
         'username' => 'required|string|max:15|unique:users',
         'password' => 'required|string',
         'email' => 'required|email|unique:users',

@@ -13,10 +13,8 @@ Route::middleware(['token.auth'])->group(function () {
     })->name('dashboard');
 
     Route::get('/dashboard/user',[DashboardController::class,'user'])->name('user');
+    Route::get('/dashboard/setting',[DashboardController::class,'setting'])->name('setting');
 
-    Route::get('/dashboard/setting', function () {
-        return view('dashboard.setting');
-    })->name('setting');
 
     Route::get('/dashboard/profil', function () {
         return view('dashboard.profil');

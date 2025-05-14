@@ -15,7 +15,7 @@
       <thead class="bg-[#034289] text-white">
         <tr>
           <th class="px-6 py-3 font-semibold">No</th>
-          <th class="px-6 py-3 font-semibold">Nama</th>
+          <th class="px-6 py-3 font-semibold">No HP</th>
           <th class="px-6 py-3 font-semibold">Username</th>
           <th class="px-6 py-3 font-semibold">Email</th>
           <th class="px-6 py-3 font-semibold">Role</th>
@@ -25,7 +25,7 @@
         @foreach ($users as $index => $user)
         <tr class="hover:bg-gray-50" data-user-id="{{ $user->id }}">
           <td class="px-6 py-4">{{ $index + 1 }}</td>
-          <td class="px-6 py-4">{{ $user->name }}</td>
+          <td class="px-6 py-4">{{ $user->no_hp }}</td>
           <td class="px-6 py-4">{{ $user->username }}</td>
           <td class="px-6 py-4">{{ $user->email }}</td>
           <td class="px-6 py-4 capitalize">{{ $user->role }}</td>
@@ -57,8 +57,8 @@
             </h2>
             <form id="addForm" class="mt-4 space-y-4">
               <div>
-                <label for="add_name" class="block text-gray-700 text-sm font-bold mb-2">Nama</label>
-                <input type="text" id="add_name" name="name" required
+                <label for="add_name" class="block text-gray-700 text-sm font-bold mb-2">No HP</label>
+                <input type="text" id="add_no_hp" name="no_hp" required
                   class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
               </div>
               <div>
@@ -99,5 +99,5 @@
     </div>
   </div>
 </div>
-<script src="js/user.js"></script>
+<script src="{{ asset('js/user.js') }}"></script>
 @endsection
