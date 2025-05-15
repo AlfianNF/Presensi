@@ -16,7 +16,13 @@ class DashboardController extends Controller
 
     public function setting()
     {
-        $settings = SettingPresensi::paginate(20);
+        $settings = SettingPresensi::with('user')->get();
         return view('dashboard.setting', compact('settings'));
+    }
+
+    public function profil()
+    {
+        $profil = auth()->user();
+        return view('dashboard.profil', compact('profiles'));
     }
 }

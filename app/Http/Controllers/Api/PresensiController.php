@@ -7,7 +7,7 @@ use Carbon\Carbon;
 use App\Models\Presensi;
 use Illuminate\Http\Request;
 use App\Models\SettingPresensi;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;

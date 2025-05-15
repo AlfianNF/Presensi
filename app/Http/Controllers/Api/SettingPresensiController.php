@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use Exception;
 use Illuminate\Http\Request;
 use App\Models\SettingPresensi;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -76,7 +76,7 @@ class SettingPresensiController extends Controller
     {
         $modelClass = SettingPresensi::class;
         try {
-            $rules = $modelClass::getValidationRules('add'); // Anda mungkin perlu membuat rule untuk 'add'
+            $rules = $modelClass::getValidationRules('add'); 
             $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {

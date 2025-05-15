@@ -14,77 +14,76 @@ class AuthController extends Controller
         return view('auth.login'); 
     } 
  
-    public function login(Request $request) 
+    public function login(Request $request)
     {
-        $request->validate([ 
-            'username' => 'required|string', 
-            'password' => 'required|string', 
-        ]); 
- 
-        try { 
-            $client = new Client(); 
-            $apiLoginUrl = env('APP_URL') . '/api/login'; 
- 
-            $response = $client->post($apiLoginUrl, [ 
-                'headers' => [ 
-                    'Accept' => 'application/json', 
-                    'Content-Type' => 'application/json', 
-                ], 
-                'json' => [ 
-                    'username' => $request->username, 
-                    'password' => $request->password, 
-                ], 
-            ]); 
- 
-            $data = json_decode($response->getBody(), true); 
- 
-            if ($data['success'] === true && isset($data['data']['access_token'])) {
-                session(['access_token' => $data['data']['access_token']]);
-                session(['user' => $data['data']['user'] ?? null]);
-                
-                $cookieTime = 60;
-                
-                Cookie::queue('access_token', $data['data']['access_token'], $cookieTime);
-                
-                \Log::info('Token diterima: ' . substr($data['data']['access_token'], 0, 10) . '...');
-                
-                return response()->view('dashboard.index', [ 
-                    'token' => $data['data']['access_token'], 
-                    'user' => $data['data']['user'] ?? null, 
-                ]);
-            } else { 
-                $errorMessage = $data['message'] ?? 'Login failed. Please check your username and password.'; 
-                return redirect()->route('loginPage')->with('error', $errorMessage); 
-            } 
-        } catch (\GuzzleHttp\Exception\ClientException $e) { 
-            $response = $e->getResponse(); 
-            $errorBody = json_decode($response->getBody()->getContents(), true); 
-            $errorMessage = $errorBody['message'] ?? 'Login failed: Invalid credentials.'; 
-            return back()->withErrors(['login' => $errorMessage]); 
-        } catch (\Exception $e) { 
-            \Log::error('Login error: ' . $e->getMessage());
-            return back()->withErrors(['login' => 'An error occurred: ' . $e->getMessage()]); 
-        } 
-    }
-    
-    public function checkToken()
-    {
-        $sessionToken = session('access_token');
-        $cookieToken = request()->cookie('access_token');
-        
-        return response()->json([
-            'cookie_exists' => !empty($cookieToken),
-            'session_exists' => !empty($sessionToken),
-            'cookie_preview' => $cookieToken ? substr($cookieToken, 0, 10) . '...' : null,
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
         ]);
+
+        try {
+            $client = new Client();
+            $apiLoginUrl = env('APP_URL') . '/api/login';
+
+            $response = $client->post($apiLoginUrl, [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'username' => $request->username,
+                    'password' => $request->password,
+                ],
+            ]);
+
+            $data = json_decode($response->getBody(), true);
+
+            if (isset($data['success']) && $data['success'] === true && isset($data['token'])) {
+                Log::info('Token diterima dari API: ' . substr($data['token'], 0, 10) . '...');
+
+                session(['temp_token' => $data['token']]);
+                session(['user' => $data['user'] ?? null]);
+
+                return response()->json([
+                    'success' => true,
+                    'redirect_url' => route('dashboard.index'),
+                ]);
+            } else {
+                $errorMessage = $data['message'] ?? 'Login gagal. Periksa kembali username dan password Anda.';
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                ], 401);
+            }
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            $errorBody = json_decode($response->getBody()->getContents(), true);
+            $errorMessage = $errorBody['message'] ?? 'Login gagal: kredensial tidak valid.';
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage,
+            ], $e->getCode());
+        } catch (\Exception $e) {
+            Log::error('Kesalahan login (Guzzle): ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mencoba login.',
+            ], 500);
+        }
     }
     
-    // Metode untuk keluar/logout
-    public function logout()
+    public function dashboard()
     {
-        session()->forget(['access_token', 'user']);
-        Cookie::queue(Cookie::forget('access_token'));
-        
-        return redirect()->route('loginPage')->with('success', 'You have been logged out successfully');
+        $token = session('temp_token');
+        session()->forget('temp_token'); 
+
+        return view('dashboard.index', ['token' => $token]);
+    }
+    
+    public function logout(Request $request)
+    {
+        $request->session()->forget('access_token');
+        $request->session()->forget('user');
+        return redirect()->route('loginPage')->with('success', 'Anda telah berhasil logout.');
     }
 }

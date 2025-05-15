@@ -1,48 +1,91 @@
-const baseUrl = 'http://presensi.test';
-
-// Fungsi untuk mengambil cookie berdasarkan nama
-function getCookie(name) {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? decodeURIComponent(match[2]) : null;
-}
+const baseUrl = document.querySelector('meta[name="app-url"]').getAttribute('content');
 
 document.getElementById('addPresensiButton').addEventListener('click', () => {
-  document.getElementById('presensiModal').classList.remove('hidden');
+    document.getElementById('presensiModal').classList.remove('hidden');
 });
 
 document.getElementById('closeModal').addEventListener('click', () => {
-  document.getElementById('presensiModal').classList.add('hidden');
+    document.getElementById('presensiModal').classList.add('hidden');
 });
 
 document.getElementById('presensiForm').addEventListener('submit', function(e) {
-  e.preventDefault();
+    e.preventDefault();
 
-  const hari = document.getElementById('hari').value;
-  const waktu = document.getElementById('waktu').value;
-  const token = getCookie('access_token'); // Ambil token dari cookie
+    const hari = document.getElementById('hari').value;
+    const waktu = document.getElementById('waktu').value;
+    const token = localStorage.getItem('token');
 
-  if (!token) {
-    alert('Token tidak ditemukan. Silakan login ulang.');
-    return;
-  }
+    if (!token) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Peringatan',
+            text: 'Token tidak ditemukan. Silakan login ulang.',
+        });
+        return;
+    }
 
-  fetch(`${baseUrl}/api/setting-presensi`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    credentials: 'include',
-    body: JSON.stringify({ hari, waktu })
-  })
-    .then(res => res.json())
-    .then(data => {
-      alert(data.message);
-      window.location.reload();
+    fetch(`${baseUrl}/api/me`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+        }
     })
-    .catch(err => {
-      alert('Gagal menyimpan presensi');
-      console.error(err);
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Gagal mengambil data pengguna');
+            });
+        }
+        return response.json();
+    })
+    .then(userData => {
+        const userId = userData.id; 
+        document.getElementById('id_user').value = userId;
+        fetch(`${baseUrl}/api/setting-presensi`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ hari, waktu, id_user: userId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Gagal menyimpan presensi');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: data.message,
+                timer: 2000,
+                showConfirmButton: false
+            });
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: error.message || 'Terjadi kesalahan saat menyimpan data.'
+            });
+            console.error(error);
+        });
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: 'Gagal mengambil data pengguna: ' + error.message
+        });
+        console.error(error);
     });
 });

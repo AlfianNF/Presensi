@@ -5,6 +5,8 @@ const userTableBody = document.getElementById('userTableBody');
 const addForm = document.getElementById('addForm');
 const baseUrl = 'http://presensi.test'
 
+let token = localStorage.getItem('token');
+console.log(token);
 
 let userIdToEdit = null;
 let userIdToDelete = null;

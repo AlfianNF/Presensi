@@ -17,7 +17,7 @@ class SettingPresensi extends Model
         'waktu' => 'required|date_format:H:i:s'
     ];
 
-    protected static $is_add = ['id_user', 'hari', 'publish_date', 'waktu'];
+    protected static $is_add = ['id_user', 'hari', 'waktu'];
     protected static $is_edit = ['id_user', 'hari', 'waktu']; 
     protected static $is_delete = ['hari', 'waktu'];
     protected static $is_filter = ['hari','waktu'];
