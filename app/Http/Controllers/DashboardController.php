@@ -22,7 +22,7 @@ class DashboardController extends Controller
 
     public function profil()
     {
-        $profil = auth()->user();
-        return view('dashboard.profil', compact('profiles'));
+        return view('dashboard.profil');
     }
+
 }

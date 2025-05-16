@@ -1,91 +1,153 @@
-const baseUrl = document.querySelector('meta[name="app-url"]').getAttribute('content');
+document.addEventListener("DOMContentLoaded", function () {
+    const baseUrl = document.querySelector('meta[name="app-url"]').getAttribute("content");
+    const token = localStorage.getItem("token");
 
-document.getElementById('addPresensiButton').addEventListener('click', () => {
-    document.getElementById('presensiModal').classList.remove('hidden');
-});
-
-document.getElementById('closeModal').addEventListener('click', () => {
-    document.getElementById('presensiModal').classList.add('hidden');
-});
-
-document.getElementById('presensiForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const hari = document.getElementById('hari').value;
-    const waktu = document.getElementById('waktu').value;
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Peringatan',
-            text: 'Token tidak ditemukan. Silakan login ulang.',
-        });
-        return;
+    // Utility: buka/tutup modal
+    function toggleModal(modal, show = true) {
+        modal.classList.toggle("hidden", !show);
     }
 
-    fetch(`${baseUrl}/api/me`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(data => {
-                throw new Error(data.message || 'Gagal mengambil data pengguna');
-            });
-        }
-        return response.json();
-    })
-    .then(userData => {
-        const userId = userData.id; 
-        document.getElementById('id_user').value = userId;
-        fetch(`${baseUrl}/api/setting-presensi`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ hari, waktu, id_user: userId })
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.message || 'Gagal menyimpan presensi');
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: data.message,
-                timer: 2000,
-                showConfirmButton: false
-            });
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        })
-        .catch(error => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: error.message || 'Terjadi kesalahan saat menyimpan data.'
-            });
-            console.error(error);
+    // Tambah Presensi
+    document.getElementById("addPresensiButton")?.addEventListener("click", () => toggleModal(presensiModalAdd, true));
+    document.getElementById("closeModalAdd")?.addEventListener("click", () => toggleModal(presensiModalAdd, false));
+
+    // Tampilkan Detail
+    document.querySelectorAll(".showBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.getElementById("show_user").textContent = btn.dataset.user;
+
+            const formattedHari = formatTanggalIndonesia(btn.dataset.hari);
+            document.getElementById("show_hari").textContent = formattedHari;
+
+            document.getElementById("show_waktu").textContent = btn.dataset.waktu;
+            toggleModal(presensiModalShow, true);
         });
-    })
-    .catch(error => {
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal',
-            text: 'Gagal mengambil data pengguna: ' + error.message
-        });
-        console.error(error);
     });
+    document.getElementById("closeModalShow")?.addEventListener("click", () => toggleModal(presensiModalShow, false));
+
+
+    // Edit Presensi
+    document.querySelectorAll(".editBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.getElementById("edit_id").value = btn.dataset.id;
+            document.getElementById("edit_hari").value = btn.dataset.hari;
+            document.getElementById("edit_waktu").value = btn.dataset.waktu;
+            toggleModal(presensiModalEdit, true);
+        });
+    });
+    document.getElementById("closeModalEdit")?.addEventListener("click", () => toggleModal(presensiModalEdit, false));
+
+    // Hapus Presensi
+    document.querySelectorAll(".deleteBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.getElementById("deletePresensi").dataset.id = btn.dataset.id;
+            toggleModal(presensiModalDelete, true);
+        });
+    });
+    document.getElementById("closeModalDelete")?.addEventListener("click", () => toggleModal(presensiModalDelete, false));
+
+    // Fungsi ambil ID user dari /api/me
+    async function getUserId() {
+        const res = await fetch(`${baseUrl}/api/me`, {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Gagal ambil user");
+        return data.id;
+    }
+
+    // Tambah Data Presensi
+    document.getElementById("presensiFormAdd")?.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (!token) return showError("Token tidak ditemukan. Silakan login ulang.");
+
+        try {
+            const userId = await getUserId();
+            const hari = document.getElementById("add_hari").value;
+            const waktu = document.getElementById("add_waktu").value;
+
+            const res = await fetch(`${baseUrl}/api/setting-presensi`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ hari, waktu, id_user: userId }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            showSuccess(data.message);
+        } catch (error) {
+            showError(error.message);
+        }
+    });
+
+    // Edit Data Presensi
+    document.getElementById("presensiFormEdit")?.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (!token) return showError("Token tidak ditemukan. Silakan login ulang.");
+
+        try {
+            const userId = await getUserId();
+            const id = document.getElementById("edit_id").value;
+            const hari = document.getElementById("edit_hari").value;
+            const waktu = document.getElementById("edit_waktu").value;
+
+            const res = await fetch(`${baseUrl}/api/setting-presensi/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ hari, waktu, id_user: userId }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            showSuccess(data.message);
+        } catch (error) {
+            showError(error.message);
+        }
+    });
+
+    // Hapus Data Presensi
+    document.getElementById("deletePresensi")?.addEventListener("click", async function () {
+        const id = this.dataset.id;
+        if (!token) return showError("Token tidak ditemukan. Silakan login ulang.");
+
+        try {
+            const res = await fetch(`${baseUrl}/api/setting-presensi/${id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            showSuccess(data.message);
+        } catch (error) {
+            showError(error.message);
+        }
+    });
+
+    // SweetAlert helpers
+    function showSuccess(msg) {
+        Swal.fire({ icon: "success", title: "Berhasil", text: msg, timer: 2000, showConfirmButton: false });
+        setTimeout(() => window.location.reload(), 2000);
+    }
+
+    function showError(msg) {
+        Swal.fire({ icon: "error", title: "Gagal", text: msg || "Terjadi kesalahan." });
+    }
+
+    function formatTanggalIndonesia(tanggalString) {
+        const tanggal = new Date(tanggalString);
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        return tanggal.toLocaleDateString('id-ID', options);
+    }
+
 });

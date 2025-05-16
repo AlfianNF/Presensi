@@ -79,11 +79,4 @@ class AuthController extends Controller
 
         return view('dashboard.index', ['token' => $token]);
     }
-    
-    public function logout(Request $request)
-    {
-        $request->session()->forget('access_token');
-        $request->session()->forget('user');
-        return redirect()->route('loginPage')->with('success', 'Anda telah berhasil logout.');
-    }
 }

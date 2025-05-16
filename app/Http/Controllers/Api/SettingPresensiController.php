@@ -14,7 +14,7 @@ class SettingPresensiController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('is_admin');
+        $this->middleware('is_admin')->only(['store', 'update', 'destroy']);    
     }
     /**
      * Display a listing of the resource.
