@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use Exception;
+use App\Models\User;
+use App\Models\Presensi;
 use Illuminate\Http\Request;
 use App\Models\SettingPresensi;
 use Illuminate\Routing\Controller;
@@ -74,9 +76,8 @@ class SettingPresensiController extends Controller
      */
     public function store(Request $request)
     {
-        $modelClass = SettingPresensi::class;
         try {
-            $rules = $modelClass::getValidationRules('add'); 
+            $rules = SettingPresensi::getValidationRules('add');
             $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
@@ -84,13 +85,27 @@ class SettingPresensiController extends Controller
             }
 
             $data = $request->all();
-            // Ambil ID pengguna yang sedang login.
-            $data['id_user'] = auth()->id(); // Pastikan user sudah login
-            $setting = $modelClass::create($data);
+            $data['id_user'] = auth()->id();
+
+            $setting = SettingPresensi::create($data);
+
+            $users = User::where('role', 'user')->get();
+
+            foreach ($users as $user) {
+                Presensi::create([
+                    'id_user' => $user->id,
+                    'id_setting' => $setting->id,
+                    'jam_masuk' => $data['jam_absen'],
+                    'jam_keluar' => null,
+                    'latitude' => '0',
+                    'longitude' => '0',
+                    'status' => 'pending',
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Setting Presensi berhasil dibuat.',
+                'message' => 'Setting Presensi berhasil dibuat dan presensi default pending telah diinput untuk user.',
                 'data' => $setting,
             ], 201);
         } catch (ValidationException $e) {

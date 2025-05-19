@@ -20,7 +20,7 @@ return new class extends Migration
             $table->time('jam_keluar')->nullable();
             $table->string('latitude');
             $table->string('longitude');
-            $table->enum('status', ['tepat waktu','terlambat','alfa'])->default('alfa');
+            $table->enum('status', ['tepat waktu','terlambat','alfa','pending'])->default('pending');
             $table->timestamps();
 
             $table->foreign('id_user')->references('id')->on('users');

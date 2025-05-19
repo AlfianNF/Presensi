@@ -4,11 +4,12 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Schema;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -118,6 +119,11 @@ class User extends Authenticatable implements JWTSubject
     public function presensi(): HasMany
     {
         return $this->hasMany(Presensi::class, 'id_user', 'id');
+    }
+
+    public function settingPresensis(): BelongsToMany
+    {
+        return $this->belongsToMany(SettingPresensi::class, 'setting_presensi_user', 'user_id', 'setting_presensi_id');
     }
 
     // public function getRelations()

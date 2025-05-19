@@ -14,13 +14,14 @@ class SettingPresensi extends Model
     protected static $rules = [
         'id_user' => 'required|exists:users,id',
         'hari'  => 'required|date',
-        'waktu' => 'required|date_format:H:i:s'
+        'jam_absen' => 'required|date_format:H:i:s',
+        'jam_pulang' => 'required|date_format:H:i:s'
     ];
 
-    protected static $is_add = ['id_user', 'hari', 'waktu'];
-    protected static $is_edit = ['id_user', 'hari', 'waktu']; 
-    protected static $is_delete = ['hari', 'waktu'];
-    protected static $is_filter = ['hari','waktu'];
+    protected static $is_add = ['id_user', 'hari', 'jam_absen','jam_pulang'];
+    protected static $is_edit = ['id_user', 'hari', 'jam_absen','jam_pulang']; 
+    protected static $is_delete = ['hari', 'jam_absen','jam_pulang'];
+    protected static $is_filter = ['hari','jam_absen','jam_pulang'];
     protected static $is_search = ['id_user', 'hari'];  
 
     public static function getAllowedFields($type)

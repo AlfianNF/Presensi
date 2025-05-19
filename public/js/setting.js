@@ -15,23 +15,22 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".showBtn").forEach(btn => {
         btn.addEventListener("click", () => {
             document.getElementById("show_user").textContent = btn.dataset.user;
-
             const formattedHari = formatTanggalIndonesia(btn.dataset.hari);
             document.getElementById("show_hari").textContent = formattedHari;
-
-            document.getElementById("show_waktu").textContent = btn.dataset.waktu;
+            document.getElementById("show_jam_absen").textContent = btn.dataset.jam_absen;
+            document.getElementById("show_jam_pulang").textContent = btn.dataset.jam_pulang;
             toggleModal(presensiModalShow, true);
         });
     });
     document.getElementById("closeModalShow")?.addEventListener("click", () => toggleModal(presensiModalShow, false));
-
 
     // Edit Presensi
     document.querySelectorAll(".editBtn").forEach(btn => {
         btn.addEventListener("click", () => {
             document.getElementById("edit_id").value = btn.dataset.id;
             document.getElementById("edit_hari").value = btn.dataset.hari;
-            document.getElementById("edit_waktu").value = btn.dataset.waktu;
+            document.getElementById("edit_jam_absen").value = btn.dataset.jam_absen;
+            document.getElementById("edit_jam_pulang").value = btn.dataset.jam_pulang;
             toggleModal(presensiModalEdit, true);
         });
     });
@@ -64,7 +63,8 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const userId = await getUserId();
             const hari = document.getElementById("add_hari").value;
-            const waktu = document.getElementById("add_waktu").value;
+            const jam_absen = document.getElementById("add_jam_absen").value;
+            const jam_pulang = document.getElementById("add_jam_pulang").value;
 
             const res = await fetch(`${baseUrl}/api/setting-presensi`, {
                 method: "POST",
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
                 },
-                body: JSON.stringify({ hari, waktu, id_user: userId }),
+                body: JSON.stringify({ hari, jam_absen, jam_pulang, id_user: userId }),
             });
 
             const data = await res.json();
@@ -93,7 +93,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const userId = await getUserId();
             const id = document.getElementById("edit_id").value;
             const hari = document.getElementById("edit_hari").value;
-            const waktu = document.getElementById("edit_waktu").value;
+            const jam_absen = document.getElementById("edit_jam_absen").value;
+            const jam_pulang = document.getElementById("edit_jam_pulang").value;
+
 
             const res = await fetch(`${baseUrl}/api/setting-presensi/${id}`, {
                 method: "PUT",
@@ -102,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
                 },
-                body: JSON.stringify({ hari, waktu, id_user: userId }),
+                body: JSON.stringify({ hari, jam_absen, jam_pulang, id_user: userId }),
             });
 
             const data = await res.json();
@@ -150,4 +152,4 @@ document.addEventListener("DOMContentLoaded", function () {
         return tanggal.toLocaleDateString('id-ID', options);
     }
 
-});
+});   
