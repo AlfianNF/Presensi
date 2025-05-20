@@ -63,8 +63,13 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const userId = await getUserId();
             const hari = document.getElementById("add_hari").value;
-            const jam_absen = document.getElementById("add_jam_absen").value;
-            const jam_pulang = document.getElementById("add_jam_pulang").value;
+
+            // Ambil nilai waktu dan tambahkan ":00"
+            const jam_absen_input = document.getElementById("add_jam_absen").value;
+            const jam_pulang_input = document.getElementById("add_jam_pulang").value;
+
+            const jam_absen = jam_absen_input ? `${jam_absen_input}:00` : null;
+            const jam_pulang = jam_pulang_input ? `${jam_pulang_input}:00` : null;
 
             const res = await fetch(`${baseUrl}/api/setting-presensi`, {
                 method: "POST",
@@ -84,6 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+
     // Edit Data Presensi
     document.getElementById("presensiFormEdit")?.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -93,9 +99,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const userId = await getUserId();
             const id = document.getElementById("edit_id").value;
             const hari = document.getElementById("edit_hari").value;
-            const jam_absen = document.getElementById("edit_jam_absen").value;
-            const jam_pulang = document.getElementById("edit_jam_pulang").value;
 
+            // Tambahkan ":00" ke nilai jam
+            const jam_absen_input = document.getElementById("edit_jam_absen").value;
+            const jam_pulang_input = document.getElementById("edit_jam_pulang").value;
+
+            const jam_absen = jam_absen_input ? `${jam_absen_input}:00` : null;
+            const jam_pulang = jam_pulang_input ? `${jam_pulang_input}:00` : null;
 
             const res = await fetch(`${baseUrl}/api/setting-presensi/${id}`, {
                 method: "PUT",
@@ -114,6 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
             showError(error.message);
         }
     });
+
 
     // Hapus Data Presensi
     document.getElementById("deletePresensi")?.addEventListener("click", async function () {
@@ -152,4 +163,4 @@ document.addEventListener("DOMContentLoaded", function () {
         return tanggal.toLocaleDateString('id-ID', options);
     }
 
-});   
+});  

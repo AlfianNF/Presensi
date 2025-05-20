@@ -99,13 +99,13 @@ class SettingPresensiController extends Controller
                     'jam_keluar' => null,
                     'latitude' => '0',
                     'longitude' => '0',
-                    'status' => 'pending',
+                    'status' => 'alfa',
                 ]);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Setting Presensi berhasil dibuat dan presensi default pending telah diinput untuk user.',
+                'message' => 'Setting Presensi berhasil dibuat dan presensi default alfa telah diinput untuk user.',
                 'data' => $setting,
             ], 201);
         } catch (ValidationException $e) {

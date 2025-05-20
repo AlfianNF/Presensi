@@ -15,10 +15,7 @@
     .card-shadow {
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     }
-    input[type="password"]::-ms-reveal,
-    input[type="password"]::-ms-clear {
-      display: none;
-    }
+    
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
@@ -50,17 +47,32 @@
           <div class="mb-4">
             <label for="password" class="block text-gray-700 text-sm font-medium mb-2">Password</label>
             <div class="relative">
+              <!-- Icon gembok -->
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <i class="fas fa-lock text-gray-400"></i>
               </div>
-              <input type="password" id="password" name="password" placeholder="Masukkan password"
+
+              <!-- Input password -->
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Masukkan password"
                 class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                required />
-              <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                required
+              />
+
+              <!-- Tombol untuk toggle mata -->
+              <button
+                type="button"
+                id="togglePassword"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
                 <i id="eyeIcon" class="fas fa-eye text-gray-400 hover:text-gray-600 cursor-pointer"></i>
               </button>
             </div>
           </div>
+
 
           @if($errors->any())
             <script>
@@ -88,6 +100,18 @@
         </form>
       </div>
   </div>
+<script>
+  document.getElementById('togglePassword').addEventListener('click', function () {
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+
+    eyeIcon.classList.toggle('fa-eye');
+    eyeIcon.classList.toggle('fa-eye-slash');
+  });
+</script>
 
 <script src="{{ asset('js/login.js') }}"></script>
 
