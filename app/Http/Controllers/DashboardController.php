@@ -32,7 +32,7 @@ class DashboardController extends Controller
 
     public function setting()
     {
-        $settings = SettingPresensi::with('user')->get();
+        $settings = SettingPresensi::with(['user', 'presensi.userPresensi'])->get();
         return view('dashboard.setting', compact('settings'));
     }
 

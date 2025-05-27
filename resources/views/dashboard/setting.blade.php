@@ -35,14 +35,17 @@
                     <td class="px-6 py-4">{{ $p->jam_absen }}</td>
                     <td class="px-6 py-4">{{ $p->jam_pulang }}</td>
                     <td class="px-6 py-4 space-x-2">
-                        <button class="bg-green-500 text-white px-3 py-1 rounded showBtn"
-                            data-id="{{ $p->id }}"
-                            data-user="{{ $p->user->username }}"
+                        <button
+                            class="showBtn bg-blue-500 text-white px-3 py-1 rounded "
+                            data-full='@json($p)'
                             data-hari="{{ $p->hari }}"
                             data-jam_absen="{{ $p->jam_absen }}"
-                            data-jam_pulang="{{ $p->jam_pulang }}">
-                            <i class="fas fa-eye mr-1"></i> Lihat
-                        </button>
+                            data-jam_pulang="{{ $p->jam_pulang }}"
+                        >
+                        <i class="fas fa-eye mr-1"></i> 
+                        Lihat Detail                       
+                    </button>
+
 
                        <button class="bg-yellow-500 text-white px-3 py-1 rounded editBtn"
                             data-id="{{ $p->id }}"
@@ -95,17 +98,38 @@
     <div id="presensiModalShow" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded shadow-lg w-full max-w-md">
             <h2 class="text-xl font-bold mb-4">Detail Presensi</h2>
+
             <div id="showData" class="space-y-2">
                 <p><strong>Dibuat Oleh:</strong> <span id="show_user"></span></p>
                 <p><strong>Tanggal:</strong> <span id="show_hari"></span></p>
                 <p><strong>Jam Absen:</strong> <span id="show_jam_absen"></span></p>
                 <p><strong>Jam Pulang:</strong> <span id="show_jam_pulang"></span></p>
+
+                <div class="mt-4">
+                    <strong>Detail Presensi Peserta:</strong>
+                    <div class="overflow-x-auto mt-2">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Masuk</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pulang</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="presensi_table_body" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
             <div class="flex justify-end mt-4">
                 <button type="button" id="closeModalShow" class="bg-gray-300 px-4 py-2 rounded">Tutup</button>
             </div>
         </div>
     </div>
+
 
     {{-- Modal Edit --}}
     <div id="presensiModalEdit" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">

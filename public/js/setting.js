@@ -14,14 +14,59 @@ document.addEventListener("DOMContentLoaded", function () {
     // Tampilkan Detail
     document.querySelectorAll(".showBtn").forEach(btn => {
         btn.addEventListener("click", () => {
-            document.getElementById("show_user").textContent = btn.dataset.user;
-            const formattedHari = formatTanggalIndonesia(btn.dataset.hari);
-            document.getElementById("show_hari").textContent = formattedHari;
-            document.getElementById("show_jam_absen").textContent = btn.dataset.jam_absen;
-            document.getElementById("show_jam_pulang").textContent = btn.dataset.jam_pulang;
+            const setting = JSON.parse(btn.dataset.full);
+
+            // Tampilkan informasi setting presensi (ini sudah benar)
+            document.getElementById("show_user").textContent = setting.user?.username ?? '—';
+            document.getElementById("show_hari").textContent = formatTanggalIndonesia(setting.hari);
+            document.getElementById("show_jam_absen").textContent = setting.jam_absen ?? '-';
+            document.getElementById("show_jam_pulang").textContent = setting.jam_pulang ?? '-';
+
+            // Bersihkan dan tampilkan daftar presensi dalam bentuk tabel
+            const presensiTableBody = document.getElementById("presensi_table_body");
+            presensiTableBody.innerHTML = ""; // Kosongkan isi tabel sebelumnya
+
+            (setting.presensi ?? []).forEach(p => {
+                const nama = p.user_presensi?.username ?? `User ID ${p.id_user}`;
+                const status = p.status ?? '-';
+                const masuk = p.jam_masuk ?? '-';
+                const keluar = p.jam_keluar ?? '-';
+
+                // Buat elemen baris tabel (<tr>)
+                const row = document.createElement("tr");
+
+                // Buat elemen sel tabel (<td>) untuk setiap kolom
+                const namaCell = document.createElement("td");
+                namaCell.className = "px-3 py-2 whitespace-nowrap"; // Tambahkan class styling
+                namaCell.textContent = nama;
+
+                const masukCell = document.createElement("td");
+                masukCell.className = "px-3 py-2 whitespace-nowrap"; // Tambahkan class styling
+                masukCell.textContent = masuk;
+
+                const keluarCell = document.createElement("td");
+                keluarCell.className = "px-3 py-2 whitespace-nowrap"; // Tambahkan class styling
+                keluarCell.textContent = keluar;
+
+                const statusCell = document.createElement("td");
+                statusCell.className = "px-3 py-2 whitespace-nowrap"; // Tambahkan class styling
+                statusCell.textContent = status;
+
+                // Masukkan sel-sel ke dalam baris
+                row.appendChild(namaCell);
+                row.appendChild(masukCell);
+                row.appendChild(keluarCell);
+                row.appendChild(statusCell);
+
+                // Masukkan baris ke dalam tbody tabel
+                presensiTableBody.appendChild(row);
+            });
+
             toggleModal(presensiModalShow, true);
         });
     });
+
+
     document.getElementById("closeModalShow")?.addEventListener("click", () => toggleModal(presensiModalShow, false));
 
     // Edit Presensi

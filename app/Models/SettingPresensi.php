@@ -70,12 +70,17 @@ class SettingPresensi extends Model
         return $this->hasMany(Presensi::class, 'id_setting', 'id');
     }
 
-    public function getRelations(){
+    public function getRelations()
+    {
         return [
             'presensi' => function ($query) {
                 $columns = Schema::getColumnListing('presensis'); 
                 $columns = array_diff($columns, ['created_at', 'updated_at']);
-                $query->select($columns);
+                $query->select($columns)->with(['userPresensi' => function ($q) {
+                    $columns = Schema::getColumnListing('users');
+                    $columns = array_diff($columns, ['created_at', 'updated_at']);
+                    $q->select($columns);
+                }]);
             },
             'user' => function ($query) {
                 $columns = Schema::getColumnListing('users');
@@ -84,4 +89,5 @@ class SettingPresensi extends Model
             },
         ];
     }
+
 }
